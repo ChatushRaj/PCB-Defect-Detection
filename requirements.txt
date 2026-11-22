@@ -1,0 +1,9 @@
+# Annotation conversion
+declxml
+
+# Training / inference (YOLOv5 installs the rest from its own requirements.txt)
+torch
+torchvision
+opencv-python
+PyYAML
+matplotlib

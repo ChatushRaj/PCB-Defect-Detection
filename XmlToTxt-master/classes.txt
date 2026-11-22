@@ -1,2 +1,6 @@
 missing_hole
-mouse_bites
+mouse_bite
+open_circuit
+short
+spur
+spurious_copper

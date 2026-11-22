@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+
+# YOLOv5 clone, training runs and weights
+yolov5/
+runs/
+*.pt
+
+# Generated YOLO-format dataset and converter output
+dataset-pcb/
+dataset/
+XmlToTxt-master/out/
+
+# OS
+.DS_Store
+Thumbs.db

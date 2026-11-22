@@ -1,100 +1,128 @@
-# PCB Defect Detection using YOLOv5
+<div align="center">
+
+# 🔍 PCB Defect Detection with YOLOv5
+
+**Automated visual inspection of printed circuit boards — six manufacturing defect types detected and localised in a single pass.**
+
+[![Python](https://img.shields.io/badge/Python-3.8+-3776AB?logo=python&logoColor=white)](#)
+[![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?logo=pytorch&logoColor=white)](#)
+[![YOLOv5](https://img.shields.io/badge/YOLOv5s-Ultralytics-00FFFF)](https://github.com/ultralytics/yolov5)
+[![Colab](https://img.shields.io/badge/Trained%20on-Google%20Colab-F9AB00?logo=googlecolab&logoColor=white)](#)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+</div>
+
+---
 
 ## Overview
 
-This project implements an automated Printed Circuit Board (PCB) defect detection system using the YOLOv5 object detection framework. The model is trained to identify multiple PCB manufacturing defects, reducing the need for manual inspection and improving quality assurance.
+Manual PCB inspection is slow and error-prone, and many defects are only a few pixels wide on a full-board image. This project fine-tunes **YOLOv5s** to detect and localise six common PCB defects, and includes the full pipeline from Pascal-VOC XML annotations to a trained detector.
 
----
+| Defect | Description |
+|---|---|
+| `missing_hole` | A drilled hole that is absent |
+| `mouse_bite` | Small bite-shaped notches along a copper edge |
+| `open_circuit` | A break in a copper trace |
+| `short` | Unintended copper bridge between two traces |
+| `spur` | A thin copper protrusion from a trace |
+| `spurious_copper` | Leftover copper where none should be |
 
-## Features
+## Results
 
-- YOLOv5-based object detection
-- Multi-class PCB defect classification
-- Automatic annotation conversion (XML → YOLO format)
-- Dataset preprocessing
-- Training and inference notebooks
-- Visualization of prediction results
+YOLOv5s (7.0 M parameters, 15.8 GFLOPs) · 416 px input · 50 epochs · batch 16 · validation set of 138 images / 583 labelled defects.
 
----
+| Class | Precision | Recall | mAP@0.5 | mAP@0.5:0.95 |
+|---|:---:|:---:|:---:|:---:|
+| missing_hole | 0.906 | 0.955 | **0.973** | 0.441 |
+| short | 0.818 | 0.812 | **0.840** | 0.351 |
+| mouse_bite | 0.447 | 0.573 | 0.418 | 0.138 |
+| open_circuit | 0.477 | 0.580 | 0.425 | 0.136 |
+| spur | 0.441 | 0.538 | 0.425 | 0.152 |
+| spurious_copper | 0.448 | 0.485 | 0.370 | 0.146 |
+| **All classes** | **0.589** | **0.657** | **0.575** | **0.228** |
 
-## Technologies Used
+**Takeaways.** Large, well-defined defects (missing holes, shorts) are detected reliably. The four thin, small defects score much lower: at 416 px a full PCB image is heavily downscaled, so features that are only a few pixels wide largely disappear. Training at a higher resolution or on image tiles is the most promising next step (see [Roadmap](#roadmap)).
 
-- Python
-- YOLOv5
-- PyTorch
-- OpenCV
-- NumPy
-- Jupyter Notebook
+## Pipeline
 
----
-
-## Dataset
-
-The project uses annotated PCB images containing common manufacturing defects.
-
-Examples include:
-
-- Missing Hole
-- Mouse Bite
-- Open Circuit
-- Short
-- Spur
-- Spurious Copper
-
----
-
-## Repository Structure
-
-```
-PCB-Defect-Detection/
-│
-├── notebooks/
-├── PCB_DATASET/
-├── XmlToTxt-master/
-├── README.md
-├── requirements.txt
-└── .gitignore
+```mermaid
+flowchart LR
+    A[PCB images +<br/>Pascal-VOC XML] --> B[XmlToTxt<br/>XML → YOLO txt]
+    B --> C[Train / val split<br/>YOLOv5 folder layout]
+    C --> D[Fine-tune YOLOv5s<br/>COCO-pretrained]
+    D --> E[Validate<br/>P · R · mAP]
+    D --> F[Detect on<br/>new boards]
 ```
 
----
+1. **Annotation conversion** — [`XmlToTxt-master/`](XmlToTxt-master) converts Pascal-VOC bounding boxes into normalised YOLO format using the class list in `classes.txt`.
+2. **Dataset layout** — [`notebooks/01_data_preparation.ipynb`](notebooks/01_data_preparation.ipynb) splits images and labels into `images/{train,val}` and `labels/{train,val}`.
+3. **Training & evaluation** — [`notebooks/02_training_yolov5_colab.ipynb`](notebooks/02_training_yolov5_colab.ipynb) clones YOLOv5, trains from `yolov5s.pt`, validates, and runs detection.
 
-## Installation
+## Getting started
 
 ```bash
 git clone https://github.com/ChatushRaj/PCB-Defect-Detection.git
-
 cd PCB-Defect-Detection
-
 pip install -r requirements.txt
+
+# 1. Convert annotations to YOLO format
+cd XmlToTxt-master
+python xmltotxt.py -c classes.txt -xml ../PCB_DATASET/Annotations -out out
+cd ..
+
+# 2. Split into train/val (see notebooks/01_data_preparation.ipynb)
+
+# 3. Train with YOLOv5
+git clone https://github.com/ultralytics/yolov5.git
+cd yolov5 && pip install -r requirements.txt
+python train.py --img 416 --batch 16 --epochs 50 \
+                --data ../notebooks/dataset.yaml --weights yolov5s.pt --cache --name pcb
+
+# 4. Evaluate and detect
+python val.py    --weights runs/train/pcb/weights/best.pt --data ../notebooks/dataset.yaml
+python detect.py --weights runs/train/pcb/weights/best.pt --source path/to/pcb_image.jpg
 ```
 
----
+> Adjust the `train` / `val` paths in [`notebooks/dataset.yaml`](notebooks/dataset.yaml) to where your split dataset lives.
 
-## Workflow
+## Dataset
 
-1. Dataset Preparation
-2. Annotation Conversion
-3. YOLO Dataset Generation
-4. Model Training
-5. Prediction
-6. Evaluation
+[PCB Defects dataset](https://www.kaggle.com/datasets/akhatova/pcb-defects) (originally released by the Open Lab on Human-Robot Interaction, Peking University): **693 images** of 10 base boards with synthetically introduced defects and **2,953 annotated defects** across the six classes (~115 images per class).
 
----
+```
+PCB_DATASET/
+├── Annotations/<class>/*.xml   Pascal-VOC bounding boxes
+├── images/<class>/*.jpg        Defective boards
+└── PCB_USED/                   The 10 defect-free reference boards
+```
 
-## Future Improvements
+## Project structure
 
-- YOLOv8 Migration
-- Real-time Camera Detection
-- Model Deployment using Flask/FastAPI
-- Edge Device Optimization
+```
+PCB-Defect-Detection/
+├── notebooks/
+│   ├── 01_data_preparation.ipynb       XML → YOLO conversion and train/val split
+│   ├── 02_training_yolov5_colab.ipynb  Training, validation and detection (Colab, with outputs)
+│   └── dataset.yaml                    YOLOv5 dataset config (6 classes)
+├── XmlToTxt-master/                    Pascal-VOC → YOLO converter
+├── PCB_DATASET/                        Images and annotations
+├── requirements.txt
+└── LICENSE
+```
 
----
+## Roadmap
 
-## Author
+- [ ] Train at higher resolution (640–1024 px) or on tiled crops to recover small defects
+- [ ] Compare with YOLOv8 / YOLO11
+- [ ] Serve the model through a small FastAPI endpoint
+- [ ] Export to ONNX / TensorRT for edge inspection hardware
 
-**Chatush Raj**
+## Acknowledgements
 
-B.Tech Computer Science (AI & ML)
+- [Ultralytics YOLOv5](https://github.com/ultralytics/yolov5)
+- [XmlToTxt](https://github.com/isabek/XmlToTxt) by Isabek Tashiev — annotation converter
+- PCB defect dataset — Open Lab on Human-Robot Interaction, Peking University
 
-GitHub:
-https://github.com/ChatushRaj
+## License
+
+[MIT](LICENSE) © Chatush Raj
