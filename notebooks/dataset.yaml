@@ -1,10 +1,8 @@
-# train and val data
-train: ../dataset-pcb/images/train
-val: ../dataset-pcb/images/val
+# YOLOv5 dataset config. Paths are relative to the yolov5/ folder,
+# which the README clones into the repository root.
+path: ../dataset-pcb
+train: images/train
+val: images/val
 
-# number of classes
 nc: 6
-
-# class names
-names: ['missing_hole', 'mouse_bite','open_circuit', 'short', 'spur', 'spurious_copper']
-
+names: ['missing_hole', 'mouse_bite', 'open_circuit', 'short', 'spur', 'spurious_copper']

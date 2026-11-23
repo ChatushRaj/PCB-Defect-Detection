@@ -55,7 +55,7 @@ flowchart LR
 ```
 
 1. **Annotation conversion** — [`XmlToTxt-master/`](XmlToTxt-master) converts Pascal-VOC bounding boxes into normalised YOLO format using the class list in `classes.txt`.
-2. **Dataset layout** — [`notebooks/01_data_preparation.ipynb`](notebooks/01_data_preparation.ipynb) splits images and labels into `images/{train,val}` and `labels/{train,val}`.
+2. **Dataset layout** — [`scripts/prepare_dataset.py`](scripts/prepare_dataset.py) writes a seeded, class-stratified split into `images/{train,val}` and `labels/{train,val}` (the original exploratory version is in [`notebooks/01_data_preparation.ipynb`](notebooks/01_data_preparation.ipynb)).
 3. **Training & evaluation** — [`notebooks/02_training_yolov5_colab.ipynb`](notebooks/02_training_yolov5_colab.ipynb) clones YOLOv5, trains from `yolov5s.pt`, validates, and runs detection.
 
 ## Getting started
@@ -63,27 +63,24 @@ flowchart LR
 ```bash
 git clone https://github.com/ChatushRaj/PCB-Defect-Detection.git
 cd PCB-Defect-Detection
-pip install -r requirements.txt
 
-# 1. Convert annotations to YOLO format
-cd XmlToTxt-master
-python xmltotxt.py -c classes.txt -xml ../PCB_DATASET/Annotations -out out
-cd ..
+# 1. Build the YOLO dataset: converts XML → YOLO labels and makes a
+#    reproducible, class-stratified 80/20 split into dataset-pcb/
+python scripts/prepare_dataset.py
 
-# 2. Split into train/val (see notebooks/01_data_preparation.ipynb)
-
-# 3. Train with YOLOv5
+# 2. Train with YOLOv5
 git clone https://github.com/ultralytics/yolov5.git
 cd yolov5 && pip install -r requirements.txt
 python train.py --img 416 --batch 16 --epochs 50 \
                 --data ../notebooks/dataset.yaml --weights yolov5s.pt --cache --name pcb
 
-# 4. Evaluate and detect
+# 3. Evaluate and detect
 python val.py    --weights runs/train/pcb/weights/best.pt --data ../notebooks/dataset.yaml
 python detect.py --weights runs/train/pcb/weights/best.pt --source path/to/pcb_image.jpg
 ```
 
-> Adjust the `train` / `val` paths in [`notebooks/dataset.yaml`](notebooks/dataset.yaml) to where your split dataset lives.
+> The standalone converter in [`XmlToTxt-master/`](XmlToTxt-master) produces identical labels if you prefer it:
+> `python xmltotxt.py -c classes.txt -xml ../PCB_DATASET/Annotations -out out`
 
 ## Dataset
 
@@ -104,6 +101,7 @@ PCB-Defect-Detection/
 │   ├── 01_data_preparation.ipynb       XML → YOLO conversion and train/val split
 │   ├── 02_training_yolov5_colab.ipynb  Training, validation and detection (Colab, with outputs)
 │   └── dataset.yaml                    YOLOv5 dataset config (6 classes)
+├── scripts/prepare_dataset.py          XML → YOLO conversion + reproducible train/val split
 ├── XmlToTxt-master/                    Pascal-VOC → YOLO converter
 ├── PCB_DATASET/                        Images and annotations
 ├── requirements.txt
