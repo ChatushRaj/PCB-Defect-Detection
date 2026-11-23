@@ -8,7 +8,7 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?logo=pytorch&logoColor=white)](#)
 [![YOLOv5](https://img.shields.io/badge/YOLOv5s-Ultralytics-00FFFF)](https://github.com/ultralytics/yolov5)
 [![Colab](https://img.shields.io/badge/Trained%20on-Google%20Colab-F9AB00?logo=googlecolab&logoColor=white)](#)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![License: All rights reserved](https://img.shields.io/badge/License-All%20rights%20reserved-red.svg)](LICENSE)
 
 </div>
 
@@ -123,4 +123,6 @@ PCB-Defect-Detection/
 
 ## License
 
-[MIT](LICENSE) © Chatush Raj
+Copyright © 2026 Chatush Raj Thotamsetty. **All rights reserved.**
+
+This code is published for viewing and evaluation only. Third-party parts keep their own terms: the [XmlToTxt](https://github.com/isabek/XmlToTxt) converter in `XmlToTxt-master/` belongs to its author, and the PCB dataset in `PCB_DATASET/` belongs to the Open Lab on Human-Robot Interaction, Peking University. It may not be copied, reused, modified or redistributed, in whole or in part, without written permission. See [LICENSE](LICENSE) for the full terms.
