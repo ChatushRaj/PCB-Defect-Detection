@@ -27,6 +27,11 @@ Manual PCB inspection is slow and error-prone, and many defects are only a few p
 | `spur` | A thin copper protrusion from a trace |
 | `spurious_copper` | Leftover copper where none should be |
 
+<p align="center">
+  <img src="docs/images/defect-gallery.jpg" alt="Close-ups of the six PCB defect types with their annotated bounding boxes" width="820">
+  <br><sub>Close-ups of each defect type with its ground-truth bounding box (from the dataset annotations).</sub>
+</p>
+
 ## Results
 
 YOLOv5s (7.0 M parameters, 15.8 GFLOPs) · 416 px input · 50 epochs · batch 16 · validation set of 138 images / 583 labelled defects.
@@ -40,6 +45,11 @@ YOLOv5s (7.0 M parameters, 15.8 GFLOPs) · 416 px input · 50 epochs · batch 16
 | spur | 0.441 | 0.538 | 0.425 | 0.152 |
 | spurious_copper | 0.448 | 0.485 | 0.370 | 0.146 |
 | **All classes** | **0.589** | **0.657** | **0.575** | **0.228** |
+
+<p align="center">
+  <img src="docs/images/full-board-annotated.jpg" alt="Full PCB image with three annotated short-circuit defects" width="820">
+  <br><sub>A full board with its three annotated <code>short</code> defects: each one covers well under 1% of the image.</sub>
+</p>
 
 **Takeaways.** Large, well-defined defects (missing holes, shorts) are detected reliably. The four thin, small defects score much lower: at 416 px a full PCB image is heavily downscaled, so features that are only a few pixels wide largely disappear. Training at a higher resolution or on image tiles is the most promising next step (see [Roadmap](#roadmap)).
 
